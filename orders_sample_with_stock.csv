@@ -1,0 +1,17 @@
+Cột,Kiểu dữ liệu,Mô tả
+Date,object (chuỗi),Ngày đặt hàng (ví dụ: 6/1/2024)
+SKU,object (chuỗi),Mã sản phẩm (ví dụ: SKU001, SKU002, ...)
+Order_Quantity,integer,Số lượng đặt hàng
+Stock_Level,integer,Cấp độ tồn kho
+Unit_Price,float,Giá đơn vị (ví dụ: 100.50, 200.75, ...)
+Total_Amount,float,Tổng giá trị (Order_Quantity * Unit_Price)
+2024-06-01,SKU001,10,50,100.50,1005.00
+2024-06-01,SKU002,15,30,200.75,3011.25
+2024-06-02,SKU003,8,20,150.00,1200.00
+2024-06-02,SKU001,12,38,100.50,1206.00
+2024-06-03,SKU004,20,60,75.25,1505.00
+2024-06-03,SKU002,5,25,200.75,1003.75
+2024-06-04,SKU005,10,40,120.00,1200.00
+2024-06-04,SKU003,15,5,150.00,2250.00
+2024-06-05,SKU001,7,31,100.50,703.50
+2024-06-05,SKU004,25,35,75.25,1881.25
