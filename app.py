@@ -14,12 +14,12 @@ st.header("Tiền xử lý dữ liệu")
 def load_and_preprocess_data(uploaded_file=None):
     df = None
     try:
-        # Kiểm tra và đọc file CSV
+        # Kiểm tra và đọc file CSV với xử lý lỗi dòng
         if uploaded_file is not None:
-            df = pd.read_csv(uploaded_file)
+            df = pd.read_csv(uploaded_file, on_bad_lines='skip')  # Bỏ qua dòng lỗi
             st.success("Đã tải file CSV thành công.")
         elif os.path.exists('orders_sample_with_stock.csv'):
-            df = pd.read_csv('orders_sample_with_stock.csv')
+            df = pd.read_csv('orders_sample_with_stock.csv', on_bad_lines='skip')
             st.success("Đã sử dụng file mặc định 'orders_sample_with_stock.csv'.")
         else:
             st.error("File 'orders_sample_with_stock.csv' không tồn tại. Vui lòng tải lên file CSV.")
@@ -28,7 +28,7 @@ def load_and_preprocess_data(uploaded_file=None):
         # Kiểm tra định dạng cơ bản
         required_columns = ['Date', 'SKU', 'Order_Quantity', 'Stock_Level', 'Unit_Price', 'Total_Amount']
         if not all(col in df.columns for col in required_columns):
-            st.error("File CSV thiếu cột yêu cầu. Vui lòng kiểm tra lại.")
+            st.error(f"File CSV thiếu cột yêu cầu. Cần: {required_columns}. Cột hiện tại: {df.columns.tolist()}")
             return None
 
         # Hiển thị 5 dòng đầu tiên
@@ -106,7 +106,7 @@ if df is not None and not df.empty:
     # Biểu đồ 1: Bar Chart
     st.subheader("1. Tổng số lượng đặt hàng theo SKU")
     bar_data = {k: sku_totals.get(k, 0) for k in ['SKU001', 'SKU002', 'SKU003', 'SKU004', 'SKU005']}
-    if not bar_data:
+    if not bar_data or all(v == 0 for v in bar_data.values()):
         st.warning("Không có dữ liệu để vẽ biểu đồ cột.")
     else:
         st.json({
