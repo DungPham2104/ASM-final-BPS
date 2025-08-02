@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from statsmodels.tsa.arima.model import ARIMA
 import os
+from datetime import datetime
 
 # Tiêu đề ứng dụng
 st.title("Phân tích và Dự báo Dữ liệu ABC Manufacturing")
@@ -10,32 +11,38 @@ st.title("Phân tích và Dự báo Dữ liệu ABC Manufacturing")
 # Bước 1: Tải và tiền xử lý dữ liệu
 st.header("Tiền xử lý dữ liệu")
 @st.cache_data
-def load_and_preprocess_data():
+def load_and_preprocess_data(uploaded_file=None):
+    df = None
     try:
         # Kiểm tra và đọc file CSV
-        if not os.path.exists('orders_sample_with_stock.csv'):
-            st.error("File 'orders_sample_with_stock.csv' không tồn tại. Vui lòng tải lên hoặc kiểm tra lại.")
+        if uploaded_file is not None:
+            df = pd.read_csv(uploaded_file)
+        elif os.path.exists('orders_sample_with_stock.csv'):
+            df = pd.read_csv('orders_sample_with_stock.csv')
+        else:
+            st.error("File 'orders_sample_with_stock.csv' không tồn tại. Vui lòng tải lên file CSV.")
             return None
-        df = pd.read_csv('orders_sample_with_stock.csv')
-        
+
         # Hiển thị 5 dòng đầu tiên
         st.write("5 dòng đầu tiên:", df.head())
-        
+
         # Kiểm tra giá trị thiếu
         st.write("Giá trị thiếu:", df.isnull().sum())
-        
+
         # Điền giá trị thiếu
         numeric_cols = ['Order_Quantity', 'Stock_Level', 'Unit_Price', 'Total_Amount']
         for col in numeric_cols:
             df[col].fillna(df[col].mean(), inplace=True)
         df['Total_Amount'].fillna(df['Order_Quantity'] * df['Unit_Price'], inplace=True)
         df.dropna(subset=['Date', 'SKU'], inplace=True)
-        
+
         # Chuẩn hóa dữ liệu
         df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+        current_date = datetime.now()
+        df = df[df['Date'] <= current_date]  # Loại bỏ ngày tương lai
         df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors='coerce')
         df.drop_duplicates(inplace=True)
-        
+
         # Lưu dữ liệu đã xử lý (tuỳ chọn)
         df.to_csv('orders_processed.csv', index=False)
         st.success("Dữ liệu đã được tiền xử lý và lưu vào 'orders_processed.csv'")
@@ -44,8 +51,10 @@ def load_and_preprocess_data():
         st.error(f"Lỗi khi xử lý dữ liệu: {e}")
         return None
 
-df = load_and_preprocess_data()
-if df is None:
+# Tải file hoặc sử dụng file mặc định
+uploaded_file = st.file_uploader("Tải lên file CSV", type=["csv"])
+df = load_and_preprocess_data(uploaded_file)
+if df is None or df.empty:
     st.stop()
 
 # Bước 2: Mô hình ARIMA
@@ -56,7 +65,7 @@ def fit_arima_model(df):
         # Chuẩn bị chuỗi time-series
         series = df.groupby('Date')['Order_Quantity'].sum()
         if len(series) < 3:
-            st.error("Dữ liệu không đủ để huấn luyện mô hình ARIMA. Cần ít nhất 3 điểm dữ liệu.")
+            st.warning("Dữ liệu không đủ để huấn luyện mô hình ARIMA. Cần ít nhất 3 điểm dữ liệu.")
             return None
         # Huấn luyện mô hình ARIMA
         model = ARIMA(series, order=(1, 1, 1))
@@ -72,9 +81,9 @@ def fit_arima_model(df):
 if df is not None:
     forecast = fit_arima_model(df)
 
-# Bước 3: Trực quan hóa 5 biểu đồ (dựa trên dữ liệu thực tế)
+# Bước 3: Trực quan hóa 5 biểu đồ
 st.header("Trực quan hóa dữ liệu")
-if df is not None:
+if df is not None and not df.empty:
     # Tổng hợp dữ liệu cho biểu đồ
     sku_totals = df.groupby('SKU')['Order_Quantity'].sum().to_dict()
     date_totals = df.groupby('Date')['Order_Quantity'].sum().to_dict()
