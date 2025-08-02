@@ -113,118 +113,21 @@ if df is not None and not df.empty:
     if not bar_data or all(v == 0 for v in bar_data.values()):
         st.warning("Không có dữ liệu để vẽ biểu đồ cột.")
     else:
-        st.json({
+        ```chartjs
+        {
             "type": "bar",
             "data": {
-                "labels": list(bar_data.keys()),
+                "labels": ["SKU001", "SKU002", "SKU003", "SKU004", "SKU005"],
                 "datasets": [{
                     "label": "Tổng số lượng đặt hàng",
-                    "data": list(bar_data.values()),
+                    "data": [bar_data["SKU001"], bar_data["SKU002"], bar_data["SKU003"], bar_data["SKU004"], bar_data["SKU005"]],
                     "backgroundColor": "#FF6384",
                     "borderColor": "#FF6384",
                     "borderWidth": 1
                 }]
             },
             "options": {
-                "scales": {"y": {"beginAtZero": True, "title": {"display": True, "text": "Số lượng"}}},
-                "plugins": {"title": {"display": True, "text": "Tổng số lượng đặt hàng theo SKU"}}
+                "scales": {"y": {"beginAtZero": true, "title": {"display": true, "text": "Số lượng"}}},
+                "plugins": {"title": {"display": true, "text": "Tổng số lượng đặt hàng theo SKU"}}
             }
-        })
-
-    # Biểu đồ 2: Line Chart
-    st.subheader("2. Xu hướng đặt hàng theo ngày")
-    line_data = {d.strftime('%Y-%m-%d'): v for d, v in date_totals.items()}
-    line_labels = sorted(line_data.keys())[:5]  # Lấy 5 ngày đầu
-    line_values = [line_data.get(d, 0) for d in line_labels]
-    if not line_labels:
-        st.warning("Không có dữ liệu để vẽ biểu đồ đường.")
-    else:
-        st.json({
-            "type": "line",
-            "data": {
-                "labels": line_labels,
-                "datasets": [{
-                    "label": "Số lượng đặt hàng",
-                    "data": line_values,
-                    "backgroundColor": "rgba(54, 162, 235, 0.2)",
-                    "borderColor": "rgba(54, 162, 235, 1)",
-                    "borderWidth": 2,
-                    "fill": True
-                }]
-            },
-            "options": {
-                "scales": {"y": {"beginAtZero": True, "title": {"display": True, "text": "Số lượng"}}},
-                "plugins": {"title": {"display": True, "text": "Xu hướng đặt hàng theo ngày"}}
-            }
-        })
-
-    # Biểu đồ 3: Pie Chart
-    st.subheader("3. Phân bổ tồn kho theo SKU")
-    pie_data = {k: stock_levels.get(k, 0) for k in ['SKU001', 'SKU002', 'SKU003', 'SKU004', 'SKU005']}
-    if not pie_data or all(v == 0 for v in pie_data.values()):
-        st.warning("Không có dữ liệu để vẽ biểu đồ tròn.")
-    else:
-        st.json({
-            "type": "pie",
-            "data": {
-                "labels": list(pie_data.keys()),
-                "datasets": [{
-                    "label": "Tồn kho",
-                    "data": list(pie_data.values()),
-                    "backgroundColor": ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"]
-                }]
-            },
-            "options": {"plugins": {"title": {"display": True, "text": "Phân bổ tồn kho theo SKU"}}}
-        })
-
-    # Biểu đồ 4: Scatter Chart
-    st.subheader("4. Mối quan hệ giữa Unit_Price và Total_Amount")
-    scatter_data = [{"x": row[0], "y": row[1]} for row in price_amount_pairs][:5]  # Lấy 5 cặp đầu
-    if not scatter_data:
-        st.warning("Không có dữ liệu để vẽ biểu đồ phân tán.")
-    else:
-        st.json({
-            "type": "scatter",
-            "data": {
-                "datasets": [{
-                    "label": "Unit Price vs Total Amount",
-                    "data": scatter_data,
-                    "backgroundColor": "rgba(75, 192, 192, 0.6)"
-                }]
-            },
-            "options": {
-                "scales": {
-                    "x": {"title": {"display": True, "text": "Unit Price"}},
-                    "y": {"title": {"display": True, "text": "Total Amount"}}
-                },
-                "plugins": {"title": {"display": True, "text": "Mối quan hệ giữa Unit Price và Total Amount"}}
-            }
-        })
-
-    # Biểu đồ 5: Radar Chart
-    st.subheader("5. So sánh hiệu suất theo SKU")
-    radar_data = {
-        "SKU001": [sku_totals.get('SKU001', 0), stock_levels.get('SKU001', 0)],
-        "SKU002": [sku_totals.get('SKU002', 0), stock_levels.get('SKU002', 0)],
-        "SKU003": [sku_totals.get('SKU003', 0), stock_levels.get('SKU003', 0)]
-    }
-    if not any(any(v) for v in radar_data.values()):
-        st.warning("Không có dữ liệu để vẽ biểu đồ radar.")
-    else:
-        st.json({
-            "type": "radar",
-            "data": {
-                "labels": ["Order_Quantity", "Stock_Level"],
-                "datasets": [
-                    {"label": k, "data": v, "backgroundColor": "rgba(255, 99, 132, 0.2)", "borderColor": "rgba(255, 99, 132, 1)"}
-                    for k, v in radar_data.items() if any(v)
-                ]
-            },
-            "options": {
-                "scales": {"r": {"beginAtZero": True, "title": {"display": True, "text": "Giá trị"}}},
-                "plugins": {"title": {"display": True, "text": "So sánh hiệu suất theo SKU"}}
-            }
-        })
-
-# Yêu cầu thư viện
-st.sidebar.text("Cài đặt: pip install pandas statsmodels streamlit")
+        }
