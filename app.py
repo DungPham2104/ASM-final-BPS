@@ -3,9 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score
 
 st.set_page_config(page_title="ABC Sales Dashboard", layout="wide")
 st.title("📊 ABC Manufacturing Data Analysis App")
@@ -26,51 +23,44 @@ if uploaded_file is not None:
 
     st.header("📈 Data Visualization")
 
+    # 1. Sales by Product
     st.markdown("### 🛍️ Sales by Product")
     fig1, ax1 = plt.subplots()
     sns.boxplot(data=df, x='Product', y='SalesAmount', ax=ax1)
     st.pyplot(fig1)
-    st.markdown("- Shows **sales variation** across product types.")
+    st.code(\"\"\"# Phân tích: Hiển thị sự phân bố doanh số theo từng sản phẩm.\"\"\")
 
-    st.markdown("### 🌍 Total Sales by Region")
+    # 2. Sales by Region
+    st.markdown("### 🌍 Sales by Region")
     fig2, ax2 = plt.subplots()
     sns.barplot(data=df, x='Region', y='SalesAmount', estimator=sum, ci=None, ax=ax2)
-    ax2.tick_params(axis='x', rotation=45)
     st.pyplot(fig2)
-    st.markdown("- Compares **total revenue** by region.")
+    st.code(\"\"\"# Phân tích: So sánh tổng doanh số theo khu vực.\"\"\")
 
+    # 3. Customer Rating Distribution
     st.markdown("### ⭐ Customer Rating Distribution")
     fig3, ax3 = plt.subplots()
     sns.histplot(df['CustomerRating'], bins=5, kde=False, ax=ax3)
     st.pyplot(fig3)
-    st.markdown("- Distribution of customer satisfaction ratings.")
+    st.code(\"\"\"# Phân tích: Phân bố mức độ hài lòng khách hàng.\"\"\")
 
+    # 4. Sales Over Time
     st.markdown("### ⏳ Sales Over Time")
     df_sorted = df.sort_values('PurchaseDate')
     fig4, ax4 = plt.subplots()
     sns.lineplot(data=df_sorted, x='PurchaseDate', y='SalesAmount', ax=ax4)
     st.pyplot(fig4)
-    st.markdown("- Trend analysis over time.")
+    st.code(\"\"\"# Phân tích: Theo dõi xu hướng doanh số theo thời gian.\"\"\")
 
+    # 5. Average Rating per Product
     st.markdown("### 📈 Average Rating per Product")
     avg_rating = df.groupby('Product')['CustomerRating'].mean().reset_index()
     fig5, ax5 = plt.subplots()
     sns.barplot(data=avg_rating, x='Product', y='CustomerRating', ax=ax5)
     st.pyplot(fig5)
-    st.markdown("- Identifies well-rated vs. poorly-rated products.")
+    st.code(\"\"\"# Phân tích: Xếp hạng trung bình của các dòng sản phẩm.\"\"\")
 
-    st.subheader("🤖 Sales Prediction Model (Experimental)")
-    features = ['ProductEncoded', 'RegionEncoded', 'CustomerRating', 'PurchaseMonth', 'PurchaseDayOfWeek']
-    X = df[features]
-    y = df['SalesAmount']
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    model = RandomForestRegressor(n_estimators=100, random_state=42)
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    mse = mean_squared_error(y_test, y_pred)
-    r2 = r2_score(y_test, y_pred)
-    st.write("📉 Mean Squared Error (MSE):", round(mse, 2))
-    st.write("📊 R² Score:", round(r2, 2))
 else:
     st.warning("📂 Please upload a CSV file to begin.")
+
 
