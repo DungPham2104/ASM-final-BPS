@@ -31,7 +31,8 @@ def load_and_preprocess_data(uploaded_file=None):
         if not all(col in current_columns for col in required_columns):
             missing_cols = [col for col in required_columns if col not in current_columns]
             st.error(f"File CSV thiếu cột yêu cầu. Cần: {required_columns}. Thiếu: {missing_cols}. Cột hiện tại: {current_columns}")
-            st.warning("Vui lòng tải lên file CSV có đúng 6 cột: Date, SKU, Order_Quantity, Stock_Level, Unit_Price, Total_Amount.")
+            st.warning("File hiện tại có thể là metadata (ví dụ: 'Cột', 'Kiểu dữ liệu', 'Mô tả'). Vui lòng tải lên file CSV chứa dữ liệu thực tế với 6 cột: Date, SKU, Order_Quantity, Stock_Level, Unit_Price, Total_Amount.")
+            st.info("Ví dụ định dạng:\nDate,SKU,Order_Quantity,Stock_Level,Unit_Price,Total_Amount\n2024-06-01,SKU001,10,50,100.50,1005.00")
             return None
 
         # Hiển thị 5 dòng đầu tiên
