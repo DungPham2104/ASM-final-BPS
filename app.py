@@ -16,7 +16,7 @@ def load_and_preprocess_data(uploaded_file=None):
     try:
         # Kiểm tra và đọc file CSV với xử lý lỗi dòng
         if uploaded_file is not None:
-            df = pd.read_csv(uploaded_file, on_bad_lines='skip')  # Bỏ qua dòng lỗi
+            df = pd.read_csv(uploaded_file, on_bad_lines='skip')
             st.success("Đã tải file CSV thành công.")
         elif os.path.exists('orders_sample_with_stock.csv'):
             df = pd.read_csv('orders_sample_with_stock.csv', on_bad_lines='skip')
@@ -27,8 +27,11 @@ def load_and_preprocess_data(uploaded_file=None):
 
         # Kiểm tra định dạng cơ bản
         required_columns = ['Date', 'SKU', 'Order_Quantity', 'Stock_Level', 'Unit_Price', 'Total_Amount']
-        if not all(col in df.columns for col in required_columns):
-            st.error(f"File CSV thiếu cột yêu cầu. Cần: {required_columns}. Cột hiện tại: {df.columns.tolist()}")
+        current_columns = df.columns.tolist()
+        if not all(col in current_columns for col in required_columns):
+            missing_cols = [col for col in required_columns if col not in current_columns]
+            st.error(f"File CSV thiếu cột yêu cầu. Cần: {required_columns}. Thiếu: {missing_cols}. Cột hiện tại: {current_columns}")
+            st.warning("Vui lòng tải lên file CSV có đúng 6 cột: Date, SKU, Order_Quantity, Stock_Level, Unit_Price, Total_Amount.")
             return None
 
         # Hiển thị 5 dòng đầu tiên
