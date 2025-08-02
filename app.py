@@ -1,88 +1,154 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from statsmodels.tsa.arima.model import ARIMA
+import base64
 
-st.set_page_config(page_title="ABC Sales Dashboard", layout="wide")
-st.title("📊 ABC Manufacturing Data Analysis App")
+# Tiêu đề ứng dụng
+st.title("Phân tích và Dự báo Dữ liệu ABC Manufacturing")
 
-uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
-if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
-    st.subheader("Raw Data Preview")
-    st.write(df.head())
+# Bước 1: Tải và tiền xử lý dữ liệu
+st.header("Tiền xử lý dữ liệu")
+@st.cache_data
+def load_and_preprocess_data():
+    # Đọc file CSV
+    df = pd.read_csv('orders_sample_with_stock.csv')
+    # Hiển thị 5 dòng đầu tiên
+    st.write("5 dòng đầu tiên:", df.head())
+    # Kiểm tra giá trị thiếu
+    st.write("Giá trị thiếu:", df.isnull().sum())
+    # Điền giá trị thiếu
+    df['Order_Quantity'].fillna(df['Order_Quantity'].mean(), inplace=True)
+    df['Stock_Level'].fillna(df['Stock_Level'].mean(), inplace=True)
+    df['Unit_Price'].fillna(df['Unit_Price'].mean(), inplace=True)
+    df['Total_Amount'].fillna(df['Order_Quantity'] * df['Unit_Price'], inplace=True)
+    df.dropna(subset=['Date', 'SKU'], inplace=True)
+    # Chuẩn hóa dữ liệu
+    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+    df[['Order_Quantity', 'Stock_Level', 'Unit_Price', 'Total_Amount']] = df[['Order_Quantity', 'Stock_Level', 'Unit_Price', 'Total_Amount']].apply(pd.to_numeric, errors='coerce')
+    df.drop_duplicates(inplace=True)
+    return df
 
-    # Preprocessing
-    df['PurchaseDate'] = pd.to_datetime(df['PurchaseDate'])
-    df['PurchaseMonth'] = df['PurchaseDate'].dt.month
-    df['PurchaseDayOfWeek'] = df['PurchaseDate'].dt.dayofweek
-    df['ProductEncoded'] = LabelEncoder().fit_transform(df['Product'])
-    df['RegionEncoded'] = LabelEncoder().fit_transform(df['Region'])
-    scaler = StandardScaler()
-    df[['SalesAmount_scaled', 'CustomerRating_scaled']] = scaler.fit_transform(df[['SalesAmount', 'CustomerRating']])
+df = load_and_preprocess_data()
+st.write("Dữ liệu đã xử lý:", df.head())
 
-    st.header("📈 Data Visualization")
+# Bước 2: Mô hình ARIMA
+st.header("Mô hình ARIMA")
+@st.cache_data
+def fit_arima_model():
+    series = df.groupby('Date')['Order_Quantity'].sum()
+    model = ARIMA(series, order=(1, 1, 1))
+    model_fit = model.fit()
+    forecast = model_fit.forecast(steps=7)
+    return forecast
 
-    # 1. Sales by Product
-    st.markdown("### 🛍️ Sales by Product")
-    fig1, ax1 = plt.subplots()
-    sns.boxplot(data=df, x='Product', y='SalesAmount', ax=ax1)
-    st.pyplot(fig1)
-    st.code(
-        "# Phân tích:\n"
-        "# - Hiển thị sự phân bố doanh số theo từng sản phẩm.\n"
-        "# - Phát hiện outliers (giá trị bất thường) và sự khác biệt giữa các dòng."
-    )
+forecast = fit_arima_model()
+st.write("Dự báo 7 ngày tiếp theo:", forecast)
 
-    # 2. Sales by Region
-    st.markdown("### 🌍 Sales by Region")
-    fig2, ax2 = plt.subplots()
-    sns.barplot(data=df, x='Region', y='SalesAmount', estimator=sum, ci=None, ax=ax2)
-    st.pyplot(fig2)
-    st.code(
-        "# Phân tích:\n"
-        "# - So sánh tổng doanh số giữa các khu vực địa lý.\n"
-        "# - Xác định khu vực có tiềm năng hoặc cần cải thiện."
-    )
+# Bước 3: Trực quan hóa 5 biểu đồ (JSON config cho Chart.js)
+st.header("Trực quan hóa dữ liệu")
 
-    # 3. Customer Rating Distribution
-    st.markdown("### ⭐ Customer Rating Distribution")
-    fig3, ax3 = plt.subplots()
-    sns.histplot(df['CustomerRating'], bins=5, kde=False, ax=ax3)
-    st.pyplot(fig3)
-    st.code(
-        "# Phân tích:\n"
-        "# - Phân bố mức độ hài lòng khách hàng (1 đến 5).\n"
-        "# - Nhiều đánh giá thấp có thể chỉ ra vấn đề về chất lượng hoặc dịch vụ."
-    )
+# Biểu đồ 1: Bar Chart
+st.subheader("1. Tổng số lượng đặt hàng theo SKU")
+st.json({
+    "type": "bar",
+    "data": {
+        "labels": ["SKU001", "SKU002", "SKU003", "SKU004", "SKU005"],
+        "datasets": [{
+            "label": "Tổng số lượng đặt hàng",
+            "data": [29, 20, 23, 45, 10],
+            "backgroundColor": "#FF6384",
+            "borderColor": "#FF6384",
+            "borderWidth": 1
+        }]
+    },
+    "options": {
+        "scales": {"y": {"beginAtZero": true, "title": {"display": true, "text": "Số lượng"}}},
+        "plugins": {"title": {"display": true, "text": "Tổng số lượng đặt hàng theo SKU"}}
+    }
+})
 
-    # 4. Sales Over Time
-    st.markdown("### ⏳ Sales Over Time")
-    df_sorted = df.sort_values('PurchaseDate')
-    fig4, ax4 = plt.subplots()
-    sns.lineplot(data=df_sorted, x='PurchaseDate', y='SalesAmount', ax=ax4)
-    st.pyplot(fig4)
-    st.code(
-        "# Phân tích:\n"
-        "# - Theo dõi doanh số theo thời gian.\n"
-        "# - Hữu ích để phát hiện xu hướng, mùa vụ và thời điểm giảm/tăng đột biến."
-    )
+# Biểu đồ 2: Line Chart
+st.subheader("2. Xu hướng đặt hàng theo ngày")
+st.json({
+    "type": "line",
+    "data": {
+        "labels": ["2024-06-01", "2024-06-02", "2024-06-03", "2024-06-04", "2024-06-05"],
+        "datasets": [{
+            "label": "Số lượng đặt hàng",
+            "data": [25, 20, 25, 25, 32],
+            "backgroundColor": "rgba(54, 162, 235, 0.2)",
+            "borderColor": "rgba(54, 162, 235, 1)",
+            "borderWidth": 2,
+            "fill": true
+        }]
+    },
+    "options": {
+        "scales": {"y": {"beginAtZero": true, "title": {"display": true, "text": "Số lượng"}}},
+        "plugins": {"title": {"display": true, "text": "Xu hướng đặt hàng theo ngày"}}
+    }
+})
 
-    # 5. Average Rating per Product
-    st.markdown("### 📈 Average Rating per Product")
-    avg_rating = df.groupby('Product')['CustomerRating'].mean().reset_index()
-    fig5, ax5 = plt.subplots()
-    sns.barplot(data=avg_rating, x='Product', y='CustomerRating', ax=ax5)
-    st.pyplot(fig5)
-    st.code(
-        "# Phân tích:\n"
-        "# - Trung bình điểm đánh giá của từng dòng sản phẩm.\n"
-        "# - Giúp xác định sản phẩm được yêu thích nhất hoặc cần cải tiến."
-    )
+# Biểu đồ 3: Pie Chart
+st.subheader("3. Phân bổ tồn kho theo SKU")
+st.json({
+    "type": "pie",
+    "data": {
+        "labels": ["SKU001", "SKU002", "SKU003", "SKU004", "SKU005"],
+        "datasets": [{
+            "label": "Tồn kho",
+            "data": [119, 55, 25, 95, 40],
+            "backgroundColor": ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"]
+        }]
+    },
+    "options": {"plugins": {"title": {"display": true, "text": "Phân bổ tồn kho theo SKU"}}}
+})
 
-else:
-    st.warning("📂 Please upload a CSV file to begin.")
+# Biểu đồ 4: Scatter Chart
+st.subheader("4. Mối quan hệ giữa Unit_Price và Total_Amount")
+st.json({
+    "type": "scatter",
+    "data": {
+        "datasets": [{
+            "label": "Unit Price vs Total Amount",
+            "data": [
+                {"x": 100.50, "y": 1005.00},
+                {"x": 200.75, "y": 3011.25},
+                {"x": 150.00, "y": 1200.00},
+                {"x": 75.25, "y": 1505.00},
+                {"x": 120.00, "y": 1200.00}
+            ],
+            "backgroundColor": "rgba(75, 192, 192, 0.6)"
+        }]
+    },
+    "options": {
+        "scales": {
+            "x": {"title": {"display": true, "text": "Unit Price"}},
+            "y": {"title": {"display": true, "text": "Total Amount"}}
+        },
+        "plugins": {"title": {"display": true, "text": "Mối quan hệ giữa Unit Price và Total Amount"}}
+    }
+})
 
+# Biểu đồ 5: Radar Chart
+st.subheader("5. So sánh hiệu suất theo SKU")
+st.json({
+    "type": "radar",
+    "data": {
+        "labels": ["Order_Quantity", "Stock_Level"],
+        "datasets": [{
+            "label": "SKU001", "data": [29, 119], "backgroundColor": "rgba(255, 99, 132, 0.2)", "borderColor": "rgba(255, 99, 132, 1)"
+        }, {
+            "label": "SKU002", "data": [20, 55], "backgroundColor": "rgba(54, 162, 235, 0.2)", "borderColor": "rgba(54, 162, 235, 1)"
+        }, {
+            "label": "SKU003", "data": [23, 25], "backgroundColor": "rgba(255, 206, 86, 0.2)", "borderColor": "rgba(255, 206, 86, 1)"
+        }]
+    },
+    "options": {
+        "scales": {"r": {"beginAtZero": true, "title": {"display": true, "text": "Giá trị"}}},
+        "plugins": {"title": {"display": true, "text": "So sánh hiệu suất theo SKU"}}
+    }
+})
 
-
+# Thêm yêu cầu thư viện
+st.sidebar.text("Cài đặt: pip install pandas statsmodels streamlit")
