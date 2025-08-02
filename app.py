@@ -126,8 +126,8 @@ if df is not None and not df.empty:
                 }]
             },
             "options": {
-                "scales": {"y": {"beginAtZero": True, "title": {"display": True, "text": "Số lượng"}}},
-                "plugins": {"title": {"display": True, "text": "Tổng số lượng đặt hàng theo SKU"}}
+                "scales": {"y": {"beginAtZero": true, "title": {"display": true, "text": "Số lượng"}}},
+                "plugins": {"title": {"display": true, "text": "Tổng số lượng đặt hàng theo SKU"}}
             }
         })
 
@@ -149,12 +149,12 @@ if df is not None and not df.empty:
                     "backgroundColor": "rgba(54, 162, 235, 0.2)",
                     "borderColor": "rgba(54, 162, 235, 1)",
                     "borderWidth": 2,
-                    "fill": True
+                    "fill": true
                 }]
             },
             "options": {
-                "scales": {"y": {"beginAtZero": True, "title": {"display": True, "text": "Số lượng"}}},
-                "plugins": {"title": {"display": True, "text": "Xu hướng đặt hàng theo ngày"}}
+                "scales": {"y": {"beginAtZero": true, "title": {"display": true, "text": "Số lượng"}}},
+                "plugins": {"title": {"display": true, "text": "Xu hướng đặt hàng theo ngày"}}
             }
         })
 
@@ -174,7 +174,7 @@ if df is not None and not df.empty:
                     "backgroundColor": ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"]
                 }]
             },
-            "options": {"plugins": {"title": {"display": True, "text": "Phân bổ tồn kho theo SKU"}}}
+            "options": {"plugins": {"title": {"display": true, "text": "Phân bổ tồn kho theo SKU"}}}
         })
 
     # Biểu đồ 4: Scatter Chart
@@ -194,10 +194,10 @@ if df is not None and not df.empty:
             },
             "options": {
                 "scales": {
-                    "x": {"title": {"display": True, "text": "Unit Price"}},
-                    "y": {"title": {"display": True, "text": "Total Amount"}}
+                    "x": {"title": {"display": true, "text": "Unit Price"}},
+                    "y": {"title": {"display": true, "text": "Total Amount"}}
                 },
-                "plugins": {"title": {"display": True, "text": "Mối quan hệ giữa Unit Price và Total Amount"}}
+                "plugins": {"title": {"display": true, "text": "Mối quan hệ giữa Unit Price và Total Amount"}}
             }
         })
 
@@ -221,8 +221,8 @@ if df is not None and not df.empty:
                 ]
             },
             "options": {
-                "scales": {"r": {"beginAtZero": True, "title": {"display": True, "text": "Giá trị"}}},
-                "plugins": {"title": {"display": True, "text": "So sánh hiệu suất theo SKU"}}
+                "scales": {"r": {"beginAtZero": true, "title": {"display": true, "text": "Giá trị"}}},
+                "plugins": {"title": {"display": true, "text": "So sánh hiệu suất theo SKU"}}
             }
         })
 
